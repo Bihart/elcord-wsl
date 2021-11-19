@@ -38,16 +38,19 @@
   "Run the PM2 process."
   (interactive)
   (if (not elcord-wsl--timer)
-    (progn
-      (setq elcord-wsl--timer
-        (run-with-timer 0 15 'elcord-wsl--update-activity))
-      (let ((inhibit-message t)
-            (message-log-max nil))
-        (shell-command
-          (concat "pm2 start \"\\\""
-            elcord-wsl--node-path
-            "\\\" " elcord-wsl--load-path "/index.js\" "
-            "--name elcord-wsl"))))))
+      (progn
+        (setq elcord-wsl--timer
+              (run-with-timer 0 15 'elcord-wsl--update-activity))
+        (let ((inhibit-message t)
+              (message-log-max nil))
+          (let ((path-parse
+                 (concat
+                  "$(wslpath -w  " elcord-wsl--load-path "/index.js | sed 's/\\\\/\\\\\\\\/g')" ))
+                (head-command
+                 (concat
+                  '"pm2 start \"'" elcord-wsl--node-path "'")))
+            (shell-command
+             (concat head-command " " path-parse "\" --name elcord-wsl"))
 
 (defun elcord-wsl--disconnect ()
   "Delete the PM2 process."
